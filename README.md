@@ -68,9 +68,14 @@ Gera `output/NOME_DO_ARQUIVO_organizado.xlsx`.
 
 A interface web reaproveita o mesmo pipeline do CLI — o resultado do
 processamento é idêntico, só muda a forma de enviar o arquivo e baixar o
-resultado. Não existe cadastro público: só o admin cria usuários.
+resultado. Não existe cadastro público: usuários só existem se um admin
+criar (via CLI ou pela própria interface web).
 
-### 1. Criar o primeiro usuário
+Existem dois perfis: **admin** (acessa `/admin/usuarios` — cria e remove
+outros usuários) e **usuário comum** (só usa a triagem). O primeiro usuário
+criado no banco vira admin automaticamente.
+
+### 1. Criar o primeiro usuário (vira admin automaticamente)
 
 ```bash
 python src/manage_users.py criar admin
@@ -79,12 +84,19 @@ python src/manage_users.py criar admin
 A senha é pedida via prompt (sem eco no terminal). Outros comandos:
 
 ```bash
-python src/manage_users.py listar
+python src/manage_users.py listar               # mostra usuário e perfil (admin / usuário comum)
+python src/manage_users.py criar outro --admin   # força --admin manualmente (além do 1º usuário, que já vira admin sozinho)
 python src/manage_users.py remover admin
 ```
 
 Os usuários ficam em `src/usuarios.db` (SQLite local, senhas com hash
 bcrypt via passlib) — esse arquivo nunca é versionado.
+
+A partir do segundo usuário em diante, o mais prático é criar direto pela
+interface web: logado como admin, use o link **"Gerenciar usuários"** no
+topo da página (leva a `/admin/usuarios`) — cria e remove usuários sem
+precisar de terminal. Usuários comuns não veem esse link e recebem 403 se
+tentarem acessar a rota diretamente.
 
 ### 2. Rodar o servidor
 

@@ -1,9 +1,10 @@
 """
-Gerenciamento de usuários do webapp — não existe cadastro público, só o
-admin cria/remove usuários por aqui.
+Gerenciamento de usuários do webapp — não existe cadastro público. Usuários
+são criados por aqui (CLI) ou pela rota /admin/usuarios do webapp (exige
+login como admin). O primeiro usuário da tabela vira admin automaticamente.
 
 Uso:
-    python src/manage_users.py criar <usuario>
+    python src/manage_users.py criar <usuario> [--admin]
     python src/manage_users.py listar
     python src/manage_users.py remover <usuario>
 """
@@ -28,11 +29,12 @@ def cmd_criar(args):
         print("Senha não pode ser vazia.")
         sys.exit(1)
     try:
-        usuarios_db.criar_usuario(args.usuario, senha)
+        ficou_admin = usuarios_db.criar_usuario(args.usuario, senha, is_admin=args.admin)
     except ValueError as erro:
         print(erro)
         sys.exit(1)
-    print(f'Usuário "{args.usuario}" criado com sucesso.')
+    sufixo = " (admin)" if ficou_admin else ""
+    print(f'Usuário "{args.usuario}" criado com sucesso{sufixo}.')
 
 
 def cmd_listar(args):
@@ -40,8 +42,10 @@ def cmd_listar(args):
     if not usuarios:
         print("Nenhum usuário cadastrado.")
         return
+    largura = max(len(u.username) for u in usuarios)
     for usuario in usuarios:
-        print(usuario)
+        status = "admin" if usuario.is_admin else "usuário comum"
+        print(f"{usuario.username.ljust(largura)}  {status}")
 
 
 def cmd_remover(args):
@@ -59,6 +63,9 @@ def main():
 
     parser_criar = subparsers.add_parser("criar", help="Cria um novo usuário (senha pedida via prompt).")
     parser_criar.add_argument("usuario")
+    parser_criar.add_argument(
+        "--admin", action="store_true", help="Força o usuário como admin (o 1º usuário da tabela já vira admin sozinho)."
+    )
     parser_criar.set_defaults(func=cmd_criar)
 
     parser_listar = subparsers.add_parser("listar", help="Lista os usuários cadastrados.")

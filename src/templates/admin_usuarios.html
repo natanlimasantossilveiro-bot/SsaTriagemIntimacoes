@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block titulo %}Gerenciar usuários — SsaTriagemIntimações{% endblock %}
+
+{% block conteudo %}
+  <h2>Gerenciar usuários</h2>
+
+  {% if mensagem %}
+    <div class="aviso-sucesso">{{ mensagem }}</div>
+  {% endif %}
+  {% if erro %}
+    <div class="aviso-erro">{{ erro }}</div>
+  {% endif %}
+
+  <table class="tabela-usuarios">
+    <thead>
+      <tr>
+        <th>Usuário</th>
+        <th>Perfil</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in usuarios %}
+        <tr>
+          <td>{{ u.username }}</td>
+          <td>
+            {% if u.is_admin %}
+              <span class="badge badge-admin">admin</span>
+            {% else %}
+              <span class="badge">usuário comum</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if u.username != usuario %}
+              <form method="post" action="/admin/usuarios/remover/{{ u.username }}"
+                    onsubmit="return confirm('Remover o usuário {{ u.username }}?');">
+                <button type="submit" class="botao-remover">Remover</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <hr class="separador">
+
+  <h3>Criar novo usuário</h3>
+  <form method="post" action="/admin/usuarios/criar">
+    <label for="novo_usuario">Usuário</label>
+    <input type="text" id="novo_usuario" name="novo_usuario" required autocomplete="off">
+
+    <label for="nova_senha">Senha</label>
+    <input type="password" id="nova_senha" name="nova_senha" required minlength="6" autocomplete="new-password">
+
+    <label class="campo-checkbox" for="is_admin">
+      <input type="checkbox" id="is_admin" name="is_admin" value="true">
+      Tornar administrador
+    </label>
+
+    <button type="submit">Criar usuário</button>
+  </form>
+
+  <div class="rodape-usuario"><a href="/">&larr; Voltar pra triagem</a></div>
+{% endblock %}

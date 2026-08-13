@@ -1,7 +1,8 @@
 """
 Interface web do SsaTriagemIntimacoes — upload da planilha bruta, geração
-da planilha organizada e download, com login simples (usuários só existem
-se criados via manage_users.py).
+da planilha organizada e download, com login simples. Não existe cadastro
+público: usuários só existem se criados via manage_users.py (CLI) ou pela
+rota /admin/usuarios (exige usuário logado com is_admin=True).
 
 Rodar (a partir da raiz do projeto):
     uvicorn src.webapp:app --reload
@@ -17,13 +18,15 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from fastapi import FastAPI, File, Form, Request, UploadFile
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, PlainTextResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
 import config
 import main as pipeline
 import usuarios_db
+
+TAMANHO_MINIMO_SENHA = 6
 
 SECRET_KEY = os.getenv("SSA_SECRET_KEY")
 if not SECRET_KEY:
@@ -56,6 +59,21 @@ def _exigir_login(request: Request):
     return usuario, None
 
 
+def _exigir_admin(request: Request):
+    """
+    Primeiro checa sessão válida (redireciona pra /login se não tiver),
+    depois checa is_admin (retorna 403 se logado mas não-admin — a pessoa
+    está autenticada, só não autorizada, então não faz sentido redirecionar
+    pro login de novo).
+    """
+    usuario, redirecionamento = _exigir_login(request)
+    if redirecionamento:
+        return None, redirecionamento
+    if not usuarios_db.eh_admin(usuario):
+        return None, PlainTextResponse("Acesso restrito a administradores.", status_code=403)
+    return usuario, None
+
+
 @app.get("/login")
 def login_form(request: Request):
     return templates.TemplateResponse(request, "login.html", {"erro": None})
@@ -82,7 +100,11 @@ def index(request: Request):
     usuario, redirecionamento = _exigir_login(request)
     if redirecionamento:
         return redirecionamento
-    return templates.TemplateResponse(request, "index.html", {"usuario": usuario, "resultado": None, "erro": None})
+    return templates.TemplateResponse(
+        request,
+        "index.html",
+        {"usuario": usuario, "eh_admin": usuarios_db.eh_admin(usuario), "resultado": None, "erro": None},
+    )
 
 
 @app.post("/processar")
@@ -91,11 +113,13 @@ async def processar(request: Request, arquivo: UploadFile = File(...)):
     if redirecionamento:
         return redirecionamento
 
+    eh_admin = usuarios_db.eh_admin(usuario)
+
     if not arquivo.filename.lower().endswith(".xlsx"):
         return templates.TemplateResponse(
             request,
             "index.html",
-            {"usuario": usuario, "resultado": None, "erro": "Envie um arquivo .xlsx."},
+            {"usuario": usuario, "eh_admin": eh_admin, "resultado": None, "erro": "Envie um arquivo .xlsx."},
             status_code=400,
         )
 
@@ -113,11 +137,18 @@ async def processar(request: Request, arquivo: UploadFile = File(...)):
         return templates.TemplateResponse(
             request,
             "index.html",
-            {"usuario": usuario, "resultado": None, "erro": f"Não foi possível processar o arquivo: {erro}"},
+            {
+                "usuario": usuario,
+                "eh_admin": eh_admin,
+                "resultado": None,
+                "erro": f"Não foi possível processar o arquivo: {erro}",
+            },
             status_code=400,
         )
 
-    return templates.TemplateResponse(request, "index.html", {"usuario": usuario, "resultado": resultado, "erro": None})
+    return templates.TemplateResponse(
+        request, "index.html", {"usuario": usuario, "eh_admin": eh_admin, "resultado": resultado, "erro": None}
+    )
 
 
 @app.get("/download/{nome_arquivo}")
@@ -133,3 +164,74 @@ def download(request: Request, nome_arquivo: str):
         return RedirectResponse("/", status_code=303)
 
     return FileResponse(caminho, filename=caminho.name)
+
+
+def _pagina_admin(request: Request, usuario: str, mensagem: str | None, erro: str | None, status_code: int = 200):
+    return templates.TemplateResponse(
+        request,
+        "admin_usuarios.html",
+        {
+            "usuario": usuario,
+            "eh_admin": True,
+            "usuarios": usuarios_db.listar_usuarios(),
+            "mensagem": mensagem,
+            "erro": erro,
+        },
+        status_code=status_code,
+    )
+
+
+@app.get("/admin/usuarios")
+def admin_usuarios(request: Request):
+    usuario, resposta = _exigir_admin(request)
+    if resposta:
+        return resposta
+    return _pagina_admin(request, usuario, mensagem=None, erro=None)
+
+
+@app.post("/admin/usuarios/criar")
+def admin_criar_usuario(
+    request: Request,
+    novo_usuario: str = Form(""),
+    nova_senha: str = Form(""),
+    is_admin: bool = Form(False),
+):
+    usuario, resposta = _exigir_admin(request)
+    if resposta:
+        return resposta
+
+    nome_limpo = novo_usuario.strip()
+    if not nome_limpo:
+        return _pagina_admin(request, usuario, mensagem=None, erro="O nome de usuário não pode ser vazio.", status_code=400)
+    if len(nova_senha) < TAMANHO_MINIMO_SENHA:
+        return _pagina_admin(
+            request,
+            usuario,
+            mensagem=None,
+            erro=f"A senha precisa ter pelo menos {TAMANHO_MINIMO_SENHA} caracteres.",
+            status_code=400,
+        )
+
+    try:
+        usuarios_db.criar_usuario(nome_limpo, nova_senha, is_admin=is_admin)
+    except ValueError as erro:
+        return _pagina_admin(request, usuario, mensagem=None, erro=str(erro), status_code=400)
+
+    return _pagina_admin(request, usuario, mensagem=f'Usuário "{nome_limpo}" criado com sucesso.', erro=None)
+
+
+@app.post("/admin/usuarios/remover/{alvo}")
+def admin_remover_usuario(request: Request, alvo: str):
+    usuario, resposta = _exigir_admin(request)
+    if resposta:
+        return resposta
+
+    if alvo.strip() == usuario:
+        return _pagina_admin(
+            request, usuario, mensagem=None, erro="Você não pode remover o próprio usuário.", status_code=400
+        )
+
+    if usuarios_db.remover_usuario(alvo):
+        return _pagina_admin(request, usuario, mensagem=f'Usuário "{alvo}" removido.', erro=None)
+
+    return _pagina_admin(request, usuario, mensagem=None, erro=f'Usuário "{alvo}" não encontrado.', status_code=400)
