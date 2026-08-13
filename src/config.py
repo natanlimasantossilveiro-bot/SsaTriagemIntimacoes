@@ -5,6 +5,16 @@ Ajuste a lista de palavras-chave e os parâmetros de prioridade aqui,
 sem precisar mexer no restante do código.
 """
 
+from pathlib import Path
+
+# Pastas de entrada/saída (relativas à raiz do projeto — tanto o CLI quanto
+# o webapp devem ser executados a partir da raiz).
+PASTA_INPUT = Path("input")
+PASTA_OUTPUT = Path("output")
+
+# Banco local de usuários do webapp (nunca versionado — ver .gitignore).
+CAMINHO_BANCO_USUARIOS = Path(__file__).resolve().parent / "usuarios.db"
+
 # TODO: lista definitiva sai da reunião com a solicitante.
 # Busca é feita (case-insensitive) no texto da coluna "Conteúdo".
 PALAVRAS_CHAVE = [

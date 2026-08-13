@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block titulo %}Triagem de Intimações{% endblock %}
+
+{% block conteudo %}
+  <h2>Triagem de intimações</h2>
+  <p style="color: var(--cor-texto-suave); font-size: 0.9rem;">
+    Envie a planilha bruta exportada do Publicações Online (.xlsx). A ferramenta
+    gera uma versão organizada, com palavras-chave, repetições e prazos destacados.
+  </p>
+
+  {% if erro %}
+    <div class="aviso-erro">{{ erro }}</div>
+  {% endif %}
+
+  <form id="form-upload" method="post" action="/processar" enctype="multipart/form-data">
+    <label for="arquivo">Planilha bruta (.xlsx)</label>
+    <input type="file" id="arquivo" name="arquivo" accept=".xlsx" required>
+
+    <button type="submit" id="botao-processar">Processar</button>
+    <div class="status-processando" id="status-processando">Processando, aguarde...</div>
+  </form>
+
+  {% if resultado %}
+    <div class="resultado">
+      <h3>Planilha organizada gerada</h3>
+      <ul class="resumo-lista">
+        <li><span>Total de linhas</span><strong>{{ resultado.total_linhas }}</strong></li>
+        <li><span>Processos repetidos</span><strong>{{ resultado.processos_repetidos }}</strong></li>
+        <li><span>Itens com teor incompleto</span><strong>{{ resultado.teor_incompleto }}</strong></li>
+      </ul>
+      <a class="botao-download" href="/download/{{ resultado.caminho_saida.name }}">Baixar planilha organizada</a>
+    </div>
+  {% endif %}
+
+  <div class="rodape-usuario">Logado como {{ usuario }}.</div>
+
+  <script>
+    document.getElementById("form-upload").addEventListener("submit", function () {
+      document.getElementById("status-processando").style.display = "block";
+      document.getElementById("botao-processar").disabled = true;
+    });
+  </script>
+{% endblock %}

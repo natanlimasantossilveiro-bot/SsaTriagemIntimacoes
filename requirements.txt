@@ -1,2 +1,10 @@
 openpyxl>=3.1
 pandas>=2.0
+fastapi>=0.110
+uvicorn>=0.29
+python-multipart>=0.0.9
+jinja2>=3.1
+passlib[bcrypt]>=1.7
+# fixado: passlib 1.7.4 quebra com bcrypt>=4.1 (self-test interno incompatível)
+bcrypt==4.0.1
+itsdangerous>=2.1

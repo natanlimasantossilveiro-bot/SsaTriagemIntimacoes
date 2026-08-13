@@ -6,3 +6,6 @@ input/*.xlsx
 output/*.xlsx
 !input/.gitkeep
 !output/.gitkeep
+
+# credenciais dos usuários do webapp — nunca versionar
+src/usuarios.db

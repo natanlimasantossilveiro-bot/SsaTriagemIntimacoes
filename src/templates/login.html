@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block titulo %}Login — SsaTriagemIntimações{% endblock %}
+
+{% block conteudo %}
+  <h2>Entrar</h2>
+
+  {% if erro %}
+    <div class="aviso-erro">{{ erro }}</div>
+  {% endif %}
+
+  <form method="post" action="/login">
+    <label for="usuario">Usuário</label>
+    <input type="text" id="usuario" name="usuario" autocomplete="username" required autofocus>
+
+    <label for="senha">Senha</label>
+    <input type="password" id="senha" name="senha" autocomplete="current-password" required>
+
+    <button type="submit">Entrar</button>
+  </form>
+{% endblock %}

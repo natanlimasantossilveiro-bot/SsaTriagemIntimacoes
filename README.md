@@ -15,9 +15,10 @@ nunca é alterado) com:
 
 1. **Palavras-chave** — busca no texto da coluna `Conteúdo` (teor da
    intimação) e sinaliza as linhas que contêm termos relevantes.
-2. **Ordem de importância** — ordena por data (`Data de
-   disponibilização/evento`) e por situação do prazo (prazo em aberto tem
-   prioridade).
+2. **Ordem de importância** — ordena diretamente pela data-limite do prazo
+   (da coluna estruturada ou extraída do texto de `Conteúdo`), do prazo mais
+   próximo de vencer para o mais distante. Linhas sem data-limite
+   identificada ficam no final.
 3. **Processos repetidos** — sinaliza quando o mesmo `Nº do processo`
    aparece mais de uma vez no dia, com contagem de repetições. Também
    sinaliza quando o *conteúdo* do texto se repete entre linhas, mesmo que o
@@ -29,7 +30,7 @@ nunca é alterado) com:
 ## Escopo confirmado com a solicitante (13/08/2026)
 
 - Palavras-chave: lista inicial a definir em reunião (ver `src/config.py`).
-- Critério de prioridade: data do evento + prazo em aberto.
+- Critério de prioridade: data-limite do prazo (mais próxima de vencer primeiro).
 - Busca de palavra-chave: apenas no texto da coluna `Conteúdo`.
 - Repetição: marcar linha + coluna com quantidade de repetições; sinalizar
   também repetição de conteúdo.
@@ -39,16 +40,22 @@ nunca é alterado) com:
 
 ```
 SsaTriagemIntimacoes/
-├── input/          # coloque aqui o .xlsx bruto extraído do Publicações Online
-├── output/         # planilha organizada é gerada aqui
+├── input/               # coloque aqui o .xlsx bruto extraído do Publicações Online
+├── output/               # planilha organizada é gerada aqui
 ├── src/
-│   ├── config.py   # lista de palavras-chave e parâmetros ajustáveis
-│   └── main.py     # script principal
+│   ├── config.py          # lista de palavras-chave e parâmetros ajustáveis
+│   ├── main.py            # pipeline de processamento + CLI
+│   ├── usuarios_db.py     # banco local de usuários do webapp (SQLite + bcrypt)
+│   ├── manage_users.py    # CLI de administração de usuários (criar/listar/remover)
+│   ├── webapp.py          # interface web (FastAPI)
+│   ├── usuarios.db        # gerado ao criar o 1º usuário — nunca versionado
+│   └── templates/         # páginas HTML (Jinja2) do webapp
 ├── tests/
+├── Dockerfile
 └── requirements.txt
 ```
 
-## Uso
+## Uso via linha de comando
 
 ```bash
 pip install -r requirements.txt
@@ -56,3 +63,60 @@ python src/main.py input/NOME_DO_ARQUIVO.xlsx
 ```
 
 Gera `output/NOME_DO_ARQUIVO_organizado.xlsx`.
+
+## Uso via interface web
+
+A interface web reaproveita o mesmo pipeline do CLI — o resultado do
+processamento é idêntico, só muda a forma de enviar o arquivo e baixar o
+resultado. Não existe cadastro público: só o admin cria usuários.
+
+### 1. Criar o primeiro usuário
+
+```bash
+python src/manage_users.py criar admin
+```
+
+A senha é pedida via prompt (sem eco no terminal). Outros comandos:
+
+```bash
+python src/manage_users.py listar
+python src/manage_users.py remover admin
+```
+
+Os usuários ficam em `src/usuarios.db` (SQLite local, senhas com hash
+bcrypt via passlib) — esse arquivo nunca é versionado.
+
+### 2. Rodar o servidor
+
+A partir da raiz do projeto:
+
+```bash
+uvicorn src.webapp:app --reload
+```
+
+Acesse `http://localhost:8000` — vai redirecionar para `/login`. Entre com
+o usuário criado no passo 1, envie o `.xlsx` bruto e baixe a planilha
+organizada, com um resumo (linhas, processos repetidos, itens com teor
+incompleto) na mesma página.
+
+Defina a variável de ambiente `SSA_SECRET_KEY` antes de rodar em qualquer
+ambiente exposto (a chave assina o cookie de sessão). Sem ela, o webapp usa
+uma chave de desenvolvimento fixa e avisa no console:
+
+```bash
+export SSA_SECRET_KEY="uma-chave-aleatoria-longa"   # Linux/Mac
+$env:SSA_SECRET_KEY = "uma-chave-aleatoria-longa"    # PowerShell
+```
+
+### 3. Expor via Ngrok (teste temporário)
+
+Com o servidor rodando na porta 8000:
+
+```bash
+ngrok http 8000
+```
+
+O Ngrok gera uma URL pública temporária apontando pro seu `localhost:8000`
+— use essa URL pra a solicitante testar pelo navegador. Quando for pra VPS,
+o `Dockerfile` na raiz já está pronto (`docker build` + `docker run`,
+expondo a porta 8000).

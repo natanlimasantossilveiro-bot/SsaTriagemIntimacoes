@@ -9,12 +9,18 @@ Uso:
 import re
 import sys
 import unicodedata
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
 import openpyxl
 import pandas as pd
 from openpyxl.styles import Font, PatternFill
+
+# garante que este diretório (src/) esteja no sys.path, tanto rodando como
+# script (`python src/main.py`) quanto importado como submódulo do pacote
+# `src` (webapp.py, via `uvicorn src.webapp:app`).
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import config
 
@@ -255,14 +261,22 @@ def gerar_planilha_final(df, caminho_saida: Path):
     wb.save(caminho_saida)
 
 
-def main():
-    if len(sys.argv) != 2:
-        print("Uso: python src/main.py input/NOME_DO_ARQUIVO.xlsx")
-        sys.exit(1)
+@dataclass
+class ResultadoProcessamento:
+    caminho_saida: Path
+    total_linhas: int
+    processos_repetidos: int
+    teor_incompleto: int
 
-    caminho_entrada = Path(sys.argv[1])
+
+def processar_planilha(caminho_entrada: Path, pasta_saida: Path = config.PASTA_OUTPUT) -> ResultadoProcessamento:
+    """
+    Pipeline completo: carrega a planilha bruta, aplica as marcações e a
+    priorização, e gera a planilha final em pasta_saida. Reaproveitado pelo
+    CLI (main()) e pelo webapp (rota POST /processar).
+    """
     nome_saida = f"{caminho_entrada.stem}_organizado.xlsx"
-    caminho_saida = Path("output") / nome_saida
+    caminho_saida = pasta_saida / nome_saida
 
     df, codigos_incompletos = carregar_planilha_bruta(caminho_entrada)
     df = marcar_palavras_chave(df)
@@ -271,7 +285,23 @@ def main():
     df = calcular_prioridade(df)
     gerar_planilha_final(df, caminho_saida)
 
-    print(f"Planilha organizada gerada em: {caminho_saida}")
+    return ResultadoProcessamento(
+        caminho_saida=caminho_saida,
+        total_linhas=len(df),
+        processos_repetidos=int(df[df["Qtde repetições (processo)"] > 1][config.COLUNA_PROCESSO].nunique()),
+        teor_incompleto=int((df["Teor incompleto?"] == "sim").sum()),
+    )
+
+
+def main():
+    if len(sys.argv) != 2:
+        print("Uso: python src/main.py input/NOME_DO_ARQUIVO.xlsx")
+        sys.exit(1)
+
+    caminho_entrada = Path(sys.argv[1])
+    resultado = processar_planilha(caminho_entrada)
+
+    print(f"Planilha organizada gerada em: {resultado.caminho_saida}")
 
 
 if __name__ == "__main__":
