@@ -98,3 +98,26 @@ def remover_usuario(username: str) -> bool:
     with _conectar() as conexao:
         cursor = conexao.execute("DELETE FROM usuarios WHERE username = ?", (username.strip(),))
         return cursor.rowcount > 0
+
+
+def redefinir_senha(username: str, nova_senha: str) -> bool:
+    """Troca a senha do usuário sem exigir a senha atual (uso do admin, via /admin/usuarios). Retorna se ele existia."""
+    with _conectar() as conexao:
+        cursor = conexao.execute(
+            "UPDATE usuarios SET password_hash = ? WHERE username = ?",
+            (_pwd_context.hash(nova_senha), username.strip()),
+        )
+        return cursor.rowcount > 0
+
+
+def alterar_propria_senha(username: str, senha_atual: str, nova_senha: str) -> bool:
+    """
+    Troca a própria senha do usuário logado, exigindo a senha atual correta
+    (diferente de redefinir_senha, que é o admin resetando a senha de
+    outra pessoa sem precisar sabê-la). Retorna False se a senha atual não
+    confere — nesse caso nada é alterado.
+    """
+    if not verificar_usuario(username, senha_atual):
+        return False
+    redefinir_senha(username, nova_senha)
+    return True

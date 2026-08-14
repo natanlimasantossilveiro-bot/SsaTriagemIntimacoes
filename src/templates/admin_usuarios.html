@@ -11,13 +11,20 @@
   {% if erro %}
     <div class="aviso-erro">{{ erro }}</div>
   {% endif %}
+  {% if senha_gerada %}
+    <div class="aviso-sucesso">
+      Senha de <strong>{{ alvo_senha_gerada }}</strong> redefinida. Nova senha temporária:
+      <div class="senha-gerada">{{ senha_gerada }}</div>
+      Repasse com segurança pra pessoa — ela não vai ser mostrada de novo.
+    </div>
+  {% endif %}
 
   <table class="tabela-usuarios">
     <thead>
       <tr>
         <th>Usuário</th>
         <th>Perfil</th>
-        <th></th>
+        <th>Ações</th>
       </tr>
     </thead>
     <tbody>
@@ -31,7 +38,12 @@
               <span class="badge">usuário comum</span>
             {% endif %}
           </td>
-          <td>
+          <td class="acoes-usuario">
+            <form method="post" action="/admin/usuarios/redefinir-senha/{{ u.username }}" class="form-redefinir-senha"
+                  onsubmit="return confirm('Redefinir a senha de {{ u.username }}? A senha atual dele(a) deixa de funcionar. Deixe o campo em branco pra gerar uma senha aleatória.');">
+              <input type="password" name="senha_escolhida" placeholder="Nova senha (opcional)" minlength="6" autocomplete="new-password">
+              <button type="submit" class="botao-redefinir">Redefinir senha</button>
+            </form>
             {% if u.username != usuario %}
               <form method="post" action="/admin/usuarios/remover/{{ u.username }}"
                     onsubmit="return confirm('Remover o usuário {{ u.username }}?');">

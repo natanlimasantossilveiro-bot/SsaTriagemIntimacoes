@@ -28,8 +28,25 @@
         <li><span>Total de linhas</span><strong>{{ resultado.total_linhas }}</strong></li>
         <li><span>Processos repetidos</span><strong>{{ resultado.processos_repetidos }}</strong></li>
         <li><span>Itens com teor incompleto</span><strong>{{ resultado.teor_incompleto }}</strong></li>
+        {% if resumo_intimacoes %}
+          <li><span>Novas intimações na fila</span><strong>{{ resumo_intimacoes.novas }}</strong></li>
+          {% if resumo_intimacoes.atualizadas %}
+            <li><span>Já existentes, atualizadas</span><strong>{{ resumo_intimacoes.atualizadas }}</strong></li>
+          {% endif %}
+        {% endif %}
       </ul>
-      <a class="botao-download" href="/download/{{ resultado.caminho_saida.name }}">Baixar planilha organizada</a>
+
+      <div class="legenda-titulo">O que as cores das linhas significam</div>
+      <ul class="legenda-cores">
+        <li><span class="legenda-swatch legenda-swatch-incompleto"></span> Teor incompleto</li>
+        <li><span class="legenda-swatch legenda-swatch-repetido"></span> Processo repetido</li>
+        <li><span class="legenda-swatch legenda-swatch-duplicado"></span> Conteúdo duplicado</li>
+        <li><span class="legenda-swatch legenda-swatch-palavra"></span> Palavra-chave encontrada</li>
+      </ul>
+
+      <a class="botao-download" href="/intimacoes">Tratar intimações na tela</a>
+      <a class="botao-secundario" href="/download/{{ resultado.caminho_saida.name }}">Baixar planilha organizada</a>
+      <a class="botao-secundario" href="/">Voltar ao início</a>
     </div>
   {% endif %}
 

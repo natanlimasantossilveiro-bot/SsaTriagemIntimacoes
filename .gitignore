@@ -9,3 +9,6 @@ output/*.xlsx
 
 # credenciais dos usuários do webapp — nunca versionar
 src/usuarios.db
+
+# dados de intimações processadas (dados reais, locais) — nunca versionar
+src/intimacoes.db

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block titulo %}Redefinir senha — SsaTriagemIntimações{% endblock %}
+
+{% block conteudo %}
+  <h2>Redefinir minha senha</h2>
+  <p style="color: var(--cor-texto-suave); font-size: 0.9rem;">
+    Logado como {{ usuario }}. Informe sua senha atual e a nova senha desejada.
+  </p>
+
+  {% if sucesso %}
+    <div class="aviso-sucesso">{{ sucesso }}</div>
+  {% endif %}
+  {% if erro %}
+    <div class="aviso-erro">{{ erro }}</div>
+  {% endif %}
+
+  <form method="post" action="/minha-senha">
+    <label for="senha_atual">Senha atual</label>
+    <input type="password" id="senha_atual" name="senha_atual" autocomplete="current-password" required>
+
+    <label for="nova_senha">Nova senha</label>
+    <input type="password" id="nova_senha" name="nova_senha" autocomplete="new-password" required minlength="6">
+
+    <label for="confirmar_senha">Confirme a nova senha</label>
+    <input type="password" id="confirmar_senha" name="confirmar_senha" autocomplete="new-password" required minlength="6">
+
+    <button type="submit">Salvar nova senha</button>
+  </form>
+
+  <div class="rodape-usuario"><a href="/">&larr; Voltar pra triagem</a></div>
+{% endblock %}

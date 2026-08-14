@@ -45,10 +45,60 @@
     }
     header a:hover { text-decoration: underline; }
     .nav-header { display: flex; align-items: center; gap: 20px; }
+    .menu-usuario { position: relative; }
+    .avatar-usuario {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #4a6fa1;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      padding: 0;
+    }
+    .avatar-usuario:hover { background: #3d5c88; }
+    .dropdown-usuario {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: calc(100% + 10px);
+      background: var(--cor-cartao);
+      border: 1px solid var(--cor-borda);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+      min-width: 220px;
+      overflow: hidden;
+      z-index: 20;
+    }
+    .dropdown-usuario.aberto { display: block; }
+    .dropdown-usuario-nome {
+      padding: 12px 16px;
+      font-size: 0.8rem;
+      color: var(--cor-texto-suave);
+      border-bottom: 1px solid var(--cor-borda);
+      word-break: break-all;
+    }
+    .dropdown-usuario a {
+      display: block;
+      padding: 10px 16px;
+      color: var(--cor-texto);
+      font-size: 0.9rem;
+      text-decoration: none;
+    }
+    .dropdown-usuario a:hover { background: var(--cor-fundo); }
     main {
       max-width: 640px;
       margin: 48px auto;
       padding: 0 20px;
+    }
+    main.pagina-larga {
+      max-width: 1180px;
     }
     .cartao {
       background: var(--cor-cartao);
@@ -137,11 +187,53 @@
       font-weight: 600;
     }
     .botao-download:hover { background: var(--cor-primaria-hover); }
+    .botao-secundario {
+      display: inline-block;
+      background: transparent;
+      color: var(--cor-primaria);
+      text-decoration: none;
+      padding: 9px 17px;
+      border: 1px solid var(--cor-primaria);
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+    .botao-secundario:hover { background: #e9edf3; }
     .rodape-usuario {
       margin-top: 20px;
       font-size: 0.85rem;
       color: var(--cor-texto-suave);
     }
+    .legenda-titulo {
+      margin: 20px 0 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--cor-texto-suave);
+    }
+    .legenda-cores {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 20px;
+      font-size: 0.88rem;
+    }
+    .legenda-cores li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 4px 0;
+    }
+    .legenda-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      flex-shrink: 0;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    .legenda-swatch-incompleto { background: #ffcdd2; }
+    .legenda-swatch-repetido { background: #bbdefb; }
+    .legenda-swatch-duplicado { background: #d1c4e9; }
+    .legenda-swatch-palavra { background: #fff9c4; }
     .aviso-sucesso {
       background: var(--cor-sucesso-fundo);
       color: #1e5c2a;
@@ -194,6 +286,44 @@
       font-weight: 600;
     }
     .botao-remover:hover { background: var(--cor-erro-fundo); }
+    .botao-redefinir {
+      margin-top: 0;
+      background: transparent;
+      color: var(--cor-primaria);
+      border: 1px solid var(--cor-primaria);
+      padding: 5px 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+    .botao-redefinir:hover { background: #e9edf3; }
+    .acoes-usuario {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .acoes-usuario form { margin: 0; }
+    .form-redefinir-senha {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .form-redefinir-senha input[type="password"] {
+      width: 150px;
+      padding: 5px 8px;
+      font-size: 0.8rem;
+    }
+    .senha-gerada {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      background: #fff;
+      border: 1px dashed var(--cor-sucesso-borda);
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin: 8px 0;
+      display: inline-block;
+    }
     .campo-checkbox {
       display: flex;
       align-items: center;
@@ -207,6 +337,117 @@
       border-top: 1px solid var(--cor-borda);
       margin: 28px 0;
     }
+    .abas-intimacoes {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--cor-borda);
+    }
+    .abas-intimacoes a {
+      padding: 8px 16px;
+      text-decoration: none;
+      color: var(--cor-texto-suave);
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+    }
+    .abas-intimacoes a.aba-ativa {
+      color: var(--cor-primaria);
+      border-bottom-color: var(--cor-primaria);
+    }
+    .form-busca-intimacoes {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .form-busca-intimacoes input[type="text"] {
+      width: 320px;
+      margin: 0;
+      padding: 9px 12px;
+    }
+    .form-busca-intimacoes button {
+      margin: 0;
+      padding: 9px 16px;
+    }
+    .tabela-scroll {
+      overflow-x: auto;
+    }
+    table.tabela-intimacoes {
+      width: 100%;
+      min-width: 900px;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+    table.tabela-intimacoes th {
+      text-align: left;
+      font-size: 0.78rem;
+      color: var(--cor-texto-suave);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding: 8px 10px;
+      border-bottom: 2px solid var(--cor-borda);
+      white-space: nowrap;
+    }
+    table.tabela-intimacoes td {
+      padding: 10px;
+      border-bottom: 1px solid var(--cor-borda);
+      vertical-align: top;
+    }
+    table.tabela-intimacoes tr.linha-teor-incompleto { background: #ffcdd2; }
+    table.tabela-intimacoes tr.linha-processo-repetido { background: #bbdefb; }
+    table.tabela-intimacoes tr.linha-conteudo-duplicado { background: #d1c4e9; }
+    table.tabela-intimacoes tr.linha-palavra-chave { background: #fff9c4; }
+    .celula-conteudo {
+      max-width: 320px;
+    }
+    .celula-conteudo details summary {
+      cursor: pointer;
+      color: var(--cor-primaria);
+      font-size: 0.82rem;
+      margin-top: 4px;
+    }
+    .celula-conteudo .conteudo-completo {
+      margin-top: 6px;
+      white-space: pre-wrap;
+      max-height: 220px;
+      overflow-y: auto;
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 4px;
+      padding: 6px 8px;
+    }
+    .tratada-info {
+      font-size: 0.78rem;
+      color: var(--cor-texto-suave);
+      margin-bottom: 6px;
+    }
+    .botao-tratar {
+      margin-top: 0;
+      background: var(--cor-primaria);
+      color: #fff;
+      border: none;
+      padding: 5px 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+    .botao-tratar:hover { background: var(--cor-primaria-hover); }
+    .botao-destratar {
+      margin-top: 0;
+      background: transparent;
+      color: var(--cor-texto-suave);
+      border: 1px solid var(--cor-borda);
+      padding: 5px 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+    .botao-destratar:hover { background: #eceff3; }
+    .sem-resultados {
+      color: var(--cor-texto-suave);
+      font-size: 0.9rem;
+      padding: 24px 0;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -214,17 +455,44 @@
     <h1>SsaTriagemIntimações</h1>
     {% if usuario %}
       <nav class="nav-header">
+        <a href="/">Triagem</a>
+        <a href="/intimacoes">Intimações</a>
         {% if eh_admin %}
           <a href="/admin/usuarios">Gerenciar usuários</a>
         {% endif %}
-        <a href="/logout">Sair ({{ usuario }})</a>
+        <div class="menu-usuario">
+          <button type="button" class="avatar-usuario" id="botao-avatar" aria-haspopup="true" aria-expanded="false">
+            {{ usuario[0]|upper }}
+          </button>
+          <div class="dropdown-usuario" id="dropdown-usuario">
+            <div class="dropdown-usuario-nome">{{ usuario }}</div>
+            <a href="/minha-senha">Redefinir senha</a>
+            <a href="/logout">Sair</a>
+          </div>
+        </div>
       </nav>
     {% endif %}
   </header>
-  <main>
+  <main class="{% block main_classe %}{% endblock %}">
     <div class="cartao">
       {% block conteudo %}{% endblock %}
     </div>
   </main>
+  <script>
+    (function () {
+      var botao = document.getElementById("botao-avatar");
+      var dropdown = document.getElementById("dropdown-usuario");
+      if (!botao || !dropdown) return;
+      botao.addEventListener("click", function (evento) {
+        evento.stopPropagation();
+        var aberto = dropdown.classList.toggle("aberto");
+        botao.setAttribute("aria-expanded", aberto ? "true" : "false");
+      });
+      document.addEventListener("click", function () {
+        dropdown.classList.remove("aberto");
+        botao.setAttribute("aria-expanded", "false");
+      });
+    })();
+  </script>
 </body>
 </html>

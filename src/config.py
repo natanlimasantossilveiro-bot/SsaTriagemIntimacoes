@@ -12,15 +12,21 @@ from pathlib import Path
 PASTA_INPUT = Path("input")
 PASTA_OUTPUT = Path("output")
 
-# Banco local de usuários do webapp (nunca versionado — ver .gitignore).
+# Bancos locais do webapp (nunca versionados — ver .gitignore).
 CAMINHO_BANCO_USUARIOS = Path(__file__).resolve().parent / "usuarios.db"
+CAMINHO_BANCO_INTIMACOES = Path(__file__).resolve().parent / "intimacoes.db"
 
 # TODO: lista definitiva sai da reunião com a solicitante.
 # Busca é feita (case-insensitive) no texto da coluna "Conteúdo".
+# Cada termo tem um peso (quanto maior, mais prioridade dá pra intimação que
+# contém aquele termo). A soma dos pesos das palavras encontradas numa linha
+# é usada como desempate na ordenação — o prazo continua sendo o critério
+# principal, o peso só decide entre linhas com prazo parecido (ver
+# calcular_prioridade em main.py). Formato: (termo, peso).
 PALAVRAS_CHAVE = [
-    # "urgente",
-    # "penhora",
-    # "audiencia",
+    # ("urgente", 10),
+    # ("penhora", 5),
+    # ("audiencia", 3),
 ]
 
 # Nome da aba de dados dentro do xlsx bruto do Publicações Online
@@ -41,6 +47,10 @@ COLUNA_PROCESSO = "Nº do processo"
 
 # Coluna usada para ordenar por data (critério de prioridade)
 COLUNA_DATA_EVENTO = "Data de disponibilização/evento"
+
+# Colunas extras exibidas na tela de intimações (/intimacoes)
+COLUNA_TERMO_PESQUISA = "Termo de pesquisa"
+COLUNA_DATA_CADASTRO = "Data de cadastro"
 
 # Colunas de prazo (podem vir vazias — nesse caso, tratar como sem prazo
 # estruturado; ver extração via regex no Conteúdo em main.py)

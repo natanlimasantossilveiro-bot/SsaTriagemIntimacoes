@@ -67,18 +67,27 @@ def marcar_palavras_chave(df):
     """
     Busca (case-insensitive, sem acento) cada termo de config.PALAVRAS_CHAVE
     dentro de config.COLUNA_CONTEUDO. Funciona normalmente com a lista vazia.
+    Adiciona "Palavras-chave encontradas" (nomes) e "Peso das palavras-chave"
+    (soma dos pesos dos termos que bateram — usada como desempate em
+    calcular_prioridade).
     """
     df = df.copy()
-    termos = [(termo, _remover_acentos(termo).lower()) for termo in config.PALAVRAS_CHAVE]
+    termos = [
+        (termo, _remover_acentos(termo).lower(), peso) for termo, peso in config.PALAVRAS_CHAVE
+    ]
 
     def buscar(conteudo):
         if not isinstance(conteudo, str) or not conteudo or not termos:
-            return ""
+            return "", 0
         texto_normalizado = _remover_acentos(conteudo).lower()
-        encontrados = [termo for termo, termo_norm in termos if termo_norm in texto_normalizado]
-        return ", ".join(encontrados)
+        encontrados = [(termo, peso) for termo, termo_norm, peso in termos if termo_norm in texto_normalizado]
+        nomes = ", ".join(termo for termo, _ in encontrados)
+        peso_total = sum(peso for _, peso in encontrados)
+        return nomes, peso_total
 
-    df["Palavras-chave encontradas"] = df[config.COLUNA_CONTEUDO].apply(buscar)
+    resultado = df[config.COLUNA_CONTEUDO].apply(buscar)
+    df["Palavras-chave encontradas"] = resultado.apply(lambda r: r[0])
+    df["Peso das palavras-chave"] = resultado.apply(lambda r: r[1])
     return df
 
 
@@ -134,7 +143,14 @@ def calcular_prioridade(df):
     (prazo)"), do prazo mais próximo de vencer para o mais distante — não
     pela Data de disponibilização/evento, que não reflete a duração real de
     cada prazo (duas linhas na mesma data de evento podem ter prazos de
-    durações bem diferentes).
+    durações bem diferentes). O prazo continua sendo o critério principal;
+    "Peso das palavras-chave" (ver marcar_palavras_chave) só desempata entre
+    linhas com prazo igual (ex.: duas sem data-limite identificada).
+
+    Além disso, agrupa as linhas do mesmo processo: o grupo aparece na
+    posição da sua intimação mais urgente (menor data-limite / maior peso
+    entre as do processo), e as demais do mesmo processo ficam logo em
+    seguida, mesmo que individualmente fossem menos prioritárias.
 
     Quando Prazo inicial/final vêm vazios, a data-limite é extraída via
     regex do texto de Conteúdo (ver PADRAO_PRAZO_TEXTO) como fallback.
@@ -170,11 +186,23 @@ def calcular_prioridade(df):
         lambda d: "sim" if pd.notna(d) and d.normalize() >= hoje else "não"
     )
 
+    # posição do grupo (mesmo Nº do processo): pela intimação mais urgente
+    # dele — menor data-limite entre as linhas do processo e, em caso de
+    # empate, o maior peso de palavra-chave entre elas.
+    df["_grupo_data_limite"] = df.groupby(config.COLUNA_PROCESSO)["Data limite (prazo)"].transform("min")
+    df["_grupo_peso"] = df.groupby(config.COLUNA_PROCESSO)["Peso das palavras-chave"].transform("max")
+
     df = df.sort_values(
-        by="Data limite (prazo)",
-        ascending=True,
+        by=[
+            "_grupo_data_limite",
+            "_grupo_peso",
+            config.COLUNA_PROCESSO,
+            "Data limite (prazo)",
+            "Peso das palavras-chave",
+        ],
+        ascending=[True, False, True, True, False],
         na_position="last",
-    ).reset_index(drop=True)
+    ).drop(columns=["_grupo_data_limite", "_grupo_peso"]).reset_index(drop=True)
 
     return df
 
@@ -204,15 +232,13 @@ def gerar_planilha_final(df, caminho_saida: Path):
     """
     Exporta para output/ com fonte Arial, cabeçalho congelado, autofiltro e
     preenchimento condicional. Nunca sobrescreve o arquivo de entrada (o
-    caminho de saída sempre fica em output/, isolado de input/).
+    caminho de saída sempre fica em output/, isolado de input/). Espera que
+    df já tenha a coluna "Sinalizadores" (ver processar_planilha).
     """
     caminho_saida.parent.mkdir(parents=True, exist_ok=True)
 
-    df_saida = df.copy()
-    df_saida["Sinalizadores"] = df_saida.apply(_montar_sinalizadores, axis=1)
-
     with pd.ExcelWriter(caminho_saida, engine="openpyxl") as writer:
-        df_saida.to_excel(writer, index=False, sheet_name="Intimações")
+        df.to_excel(writer, index=False, sheet_name="Intimações")
 
     wb = openpyxl.load_workbook(caminho_saida)
     ws = wb.active
@@ -233,9 +259,9 @@ def gerar_planilha_final(df, caminho_saida: Path):
 
     # ordem de precedência: se a linha acumula mais de um sinalizador, a cor
     # mostrada segue essa ordem (a coluna "Sinalizadores" mantém a lista completa).
-    for i in range(len(df_saida)):
+    for i in range(len(df)):
         linha_excel = i + 2
-        row = df_saida.iloc[i]
+        row = df.iloc[i]
         if row.get("Teor incompleto?") == "sim":
             cor = CORES_SINALIZADORES["teor incompleto"]
         elif row.get("Qtde repetições (processo)", 1) > 1:
@@ -267,13 +293,15 @@ class ResultadoProcessamento:
     total_linhas: int
     processos_repetidos: int
     teor_incompleto: int
+    df: pd.DataFrame
 
 
 def processar_planilha(caminho_entrada: Path, pasta_saida: Path = config.PASTA_OUTPUT) -> ResultadoProcessamento:
     """
     Pipeline completo: carrega a planilha bruta, aplica as marcações e a
     priorização, e gera a planilha final em pasta_saida. Reaproveitado pelo
-    CLI (main()) e pelo webapp (rota POST /processar).
+    CLI (main()) e pelo webapp (rota POST /processar, que também usa o
+    DataFrame retornado pra alimentar a tela de intimações via intimacoes_db).
     """
     nome_saida = f"{caminho_entrada.stem}_organizado.xlsx"
     caminho_saida = pasta_saida / nome_saida
@@ -283,11 +311,13 @@ def processar_planilha(caminho_entrada: Path, pasta_saida: Path = config.PASTA_O
     df = marcar_repetidos(df)
     df = marcar_teor_incompleto(df, codigos_incompletos)
     df = calcular_prioridade(df)
+    df["Sinalizadores"] = df.apply(_montar_sinalizadores, axis=1)
     gerar_planilha_final(df, caminho_saida)
 
     return ResultadoProcessamento(
         caminho_saida=caminho_saida,
         total_linhas=len(df),
+        df=df,
         processos_repetidos=int(df[df["Qtde repetições (processo)"] > 1][config.COLUNA_PROCESSO].nunique()),
         teor_incompleto=int((df["Teor incompleto?"] == "sim").sum()),
     )

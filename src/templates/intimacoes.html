@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block titulo %}Intimações — SsaTriagemIntimações{% endblock %}
+{% block main_classe %}pagina-larga{% endblock %}
+
+{% block conteudo %}
+  <h2>Intimações</h2>
+  <p style="color: var(--cor-texto-suave); font-size: 0.9rem;">
+    Fila de triagem — todas as intimações já processadas, ordenadas pelo prazo
+    mais próximo de vencer. Marque como tratada pra tirar da fila; ela continua
+    disponível na aba "Tratadas".
+  </p>
+
+  <div class="abas-intimacoes">
+    <a href="/intimacoes?aba=pendentes" class="{{ 'aba-ativa' if aba == 'pendentes' else '' }}">
+      Pendentes ({{ total_pendentes }})
+    </a>
+    <a href="/intimacoes?aba=tratadas" class="{{ 'aba-ativa' if aba == 'tratadas' else '' }}">
+      Tratadas ({{ total_tratadas }})
+    </a>
+  </div>
+
+  <form method="get" action="/intimacoes" class="form-busca-intimacoes">
+    <input type="hidden" name="aba" value="{{ aba }}">
+    <input type="text" name="busca" value="{{ busca }}" placeholder="Buscar por processo, termo ou conteúdo...">
+    <button type="submit">Buscar</button>
+    {% if busca %}
+      <a class="botao-secundario" href="/intimacoes?aba={{ aba }}">Limpar busca</a>
+    {% endif %}
+  </form>
+
+  {% if not itens %}
+    <div class="sem-resultados">
+      {% if busca %}
+        Nenhuma intimação encontrada pra essa busca.
+      {% elif aba == 'tratadas' %}
+        Nenhuma intimação tratada ainda.
+      {% else %}
+        Nenhuma intimação pendente — tudo em dia. Faça um upload em <a href="/">Triagem de intimações</a> pra trazer mais.
+      {% endif %}
+    </div>
+  {% else %}
+    <div class="tabela-scroll">
+      <table class="tabela-intimacoes">
+        <thead>
+          <tr>
+            <th>Processo</th>
+            <th>Termo</th>
+            <th>Data evento</th>
+            <th>Data limite</th>
+            <th>Sinalizadores</th>
+            <th>Conteúdo</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in itens %}
+            {% set linha_classe =
+                'linha-teor-incompleto' if item.teor_incompleto else
+                'linha-processo-repetido' if item.qtde_repeticoes > 1 else
+                'linha-conteudo-duplicado' if item.conteudo_duplicado else
+                'linha-palavra-chave' if item.palavras_chave else '' %}
+            <tr class="{{ linha_classe }}">
+              <td>{{ item.processo }}</td>
+              <td>{{ item.termo_pesquisa }}</td>
+              <td>{{ item.data_evento }}</td>
+              <td>
+                {{ item.data_limite or 'não encontrada' }}
+                {% if item.data_limite %}<br><span style="font-size:0.75rem; color: var(--cor-texto-suave);">({{ item.origem_prazo }})</span>{% endif %}
+              </td>
+              <td>{{ item.sinalizadores or '—' }}</td>
+              <td class="celula-conteudo">
+                {{ item.conteudo | truncate(140) }}
+                {% if item.conteudo|length > 140 %}
+                  <details>
+                    <summary>Ver conteúdo completo</summary>
+                    <div class="conteudo-completo">{{ item.conteudo }}</div>
+                  </details>
+                {% endif %}
+              </td>
+              <td>
+                {% if item.tratada %}
+                  <div class="tratada-info">Tratada por {{ item.tratada_por }}<br>{{ item.tratada_em }}</div>
+                  <form method="post" action="/intimacoes/{{ item.codigo }}/destratar">
+                    <input type="hidden" name="aba" value="{{ aba }}">
+                    <input type="hidden" name="busca" value="{{ busca }}">
+                    <button type="submit" class="botao-destratar">Desmarcar</button>
+                  </form>
+                {% else %}
+                  <form method="post" action="/intimacoes/{{ item.codigo }}/tratar">
+                    <input type="hidden" name="aba" value="{{ aba }}">
+                    <input type="hidden" name="busca" value="{{ busca }}">
+                    <button type="submit" class="botao-tratar">Marcar tratada</button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+{% endblock %}
