@@ -12,7 +12,7 @@ de "tratada".
 import sqlite3
 import sys
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -244,6 +244,19 @@ def contar_pendentes() -> int:
 def contar_tratadas() -> int:
     with _conectar() as conexao:
         return conexao.execute("SELECT COUNT(*) FROM intimacoes WHERE tratada = 1").fetchone()[0]
+
+
+def contar_urgentes(dias: int = config.DIAS_ALERTA_PRAZO) -> int:
+    """
+    Pendentes com data-limite já vencida ou vencendo em até `dias` dias.
+    Usada pro alerta de prazo nas telas — ver config.DIAS_ALERTA_PRAZO.
+    """
+    limite = (date.today() + timedelta(days=dias)).isoformat()
+    with _conectar() as conexao:
+        return conexao.execute(
+            "SELECT COUNT(*) FROM intimacoes WHERE tratada = 0 AND data_limite IS NOT NULL AND data_limite <= ?",
+            (limite,),
+        ).fetchone()[0]
 
 
 def marcar_tratada(codigo: str, usuario: str) -> bool:

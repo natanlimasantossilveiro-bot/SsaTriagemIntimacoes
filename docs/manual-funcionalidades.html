@@ -1,0 +1,669 @@
+<title>Manual da Triagem de Intimações</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --paper: #eef0f4;
+    --surface: #ffffff;
+    --surface-2: #f7f8fb;
+    --ink: #14213a;
+    --ink-soft: #55607a;
+    --ink-faint: #7d8698;
+    --rule: #d7dbe3;
+    --rule-soft: #e6e9ee;
+    --accent: #8a5a24;
+    --accent-soft: #f3e7d6;
+    --accent-ring: #c99a5b;
+    --link: #2f4f7f;
+
+    --sinal-incompleto: #ffcdd2;
+    --sinal-repetido: #bbdefb;
+    --sinal-duplicado: #d1c4e9;
+    --sinal-palavra: #fff9c4;
+    --sinal-ink: #33261a;
+
+    --badge-admin-bg: #fbe7d3;
+    --badge-admin-fg: #8a4a13;
+    --badge-todos-bg: #dfe8f7;
+    --badge-todos-fg: #2f4f7f;
+
+    --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --font-body: "IBM Plex Sans", "Segoe UI", Helvetica, Arial, sans-serif;
+    --font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0d1220;
+      --surface: #141b2c;
+      --surface-2: #101625;
+      --ink: #e7eaf2;
+      --ink-soft: #a6afc4;
+      --ink-faint: #7c8499;
+      --rule: #29334a;
+      --rule-soft: #1f273b;
+      --accent: #d9a35f;
+      --accent-soft: #2c2318;
+      --accent-ring: #d9a35f;
+      --link: #8fb3ea;
+
+      --sinal-incompleto: #5c2a2f;
+      --sinal-repetido: #24415f;
+      --sinal-duplicado: #3c2f57;
+      --sinal-palavra: #5a5321;
+      --sinal-ink: #f0e6d8;
+
+      --badge-admin-bg: #3a2a15;
+      --badge-admin-fg: #e7ae6c;
+      --badge-todos-bg: #1c2c46;
+      --badge-todos-fg: #9dc0f2;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #0d1220;
+    --surface: #141b2c;
+    --surface-2: #101625;
+    --ink: #e7eaf2;
+    --ink-soft: #a6afc4;
+    --ink-faint: #7c8499;
+    --rule: #29334a;
+    --rule-soft: #1f273b;
+    --accent: #d9a35f;
+    --accent-soft: #2c2318;
+    --accent-ring: #d9a35f;
+    --link: #8fb3ea;
+
+    --sinal-incompleto: #5c2a2f;
+    --sinal-repetido: #24415f;
+    --sinal-duplicado: #3c2f57;
+    --sinal-palavra: #5a5321;
+    --sinal-ink: #f0e6d8;
+
+    --badge-admin-bg: #3a2a15;
+    --badge-admin-fg: #e7ae6c;
+    --badge-todos-bg: #1c2c46;
+    --badge-todos-fg: #9dc0f2;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--link); }
+  a:focus-visible, button:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--accent-ring);
+    outline-offset: 2px;
+  }
+
+  .capa {
+    border-bottom: 1px solid var(--rule);
+    padding: 64px 24px 48px;
+  }
+  .capa-interior {
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 22px;
+    height: 1px;
+    background: var(--accent);
+    display: inline-block;
+  }
+  .capa h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(2.1rem, 4vw, 3rem);
+    margin: 18px 0 14px;
+    max-width: 20ch;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  .capa p.dek {
+    max-width: 62ch;
+    color: var(--ink-soft);
+    font-size: 1.08rem;
+    margin: 0 0 22px;
+  }
+  .capa-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+  }
+  .capa-meta strong { color: var(--ink-soft); font-weight: 500; }
+
+  .layout {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 40px 24px 100px;
+    display: grid;
+    grid-template-columns: 232px minmax(0, 1fr);
+    gap: 56px;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  nav.toc {
+    position: sticky;
+    top: 32px;
+    font-size: 0.86rem;
+  }
+  @media (max-width: 900px) {
+    nav.toc {
+      position: static;
+      border: 1px solid var(--rule);
+      border-radius: 10px;
+      padding: 14px 16px;
+      background: var(--surface);
+    }
+  }
+  nav.toc .toc-titulo {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 12px;
+  }
+  nav.toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: toc;
+    border-left: 1px solid var(--rule);
+  }
+  nav.toc li { counter-increment: toc; }
+  nav.toc a {
+    display: block;
+    padding: 7px 0 7px 16px;
+    margin-left: -1px;
+    border-left: 1px solid transparent;
+    color: var(--ink-soft);
+    text-decoration: none;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  nav.toc a:hover {
+    color: var(--ink);
+    border-left-color: var(--accent);
+  }
+
+  main { min-width: 0; }
+
+  section.bloco {
+    padding: 40px 0;
+    border-bottom: 1px solid var(--rule-soft);
+    scroll-margin-top: 24px;
+  }
+  section.bloco:last-of-type { border-bottom: none; }
+
+  .bloco-cabecalho {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+  .bloco .eyebrow { margin-bottom: 10px; }
+  .bloco h2 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.62rem;
+    margin: 0 0 4px;
+    letter-spacing: -0.005em;
+  }
+  .bloco > p.intro {
+    max-width: 68ch;
+    color: var(--ink-soft);
+    font-size: 1rem;
+    margin: 10px 0 22px;
+  }
+
+  .badge {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 4px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+  .badge-admin { background: var(--badge-admin-bg); color: var(--badge-admin-fg); }
+  .badge-todos { background: var(--badge-todos-bg); color: var(--badge-todos-fg); }
+
+  .cartoes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-top: 8px;
+  }
+  .cartao {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 20px 22px;
+  }
+  .cartao h3 {
+    font-family: var(--font-body);
+    font-size: 0.98rem;
+    font-weight: 600;
+    margin: 0 0 8px;
+  }
+  .cartao p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.92rem;
+  }
+  .cartao .rota {
+    display: inline-block;
+    margin-top: 12px;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    color: var(--ink-faint);
+    background: var(--surface-2);
+    border: 1px solid var(--rule-soft);
+    border-radius: 5px;
+    padding: 3px 7px;
+  }
+
+  ul.lista, ol.lista {
+    margin: 0;
+    padding-left: 1.15em;
+    color: var(--ink);
+  }
+  ul.lista li, ol.lista li {
+    margin-bottom: 9px;
+    padding-left: 4px;
+  }
+  ul.lista li:last-child, ol.lista li:last-child { margin-bottom: 0; }
+  ul.lista strong, ol.lista strong { font-weight: 600; }
+
+  .nota {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: var(--surface-2);
+    border: 1px solid var(--rule-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    margin-top: 20px;
+  }
+  .nota strong { color: var(--ink); font-weight: 600; }
+
+  table.legenda {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 18px;
+    font-size: 0.9rem;
+  }
+  table.legenda th {
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 500;
+    padding: 0 0 8px;
+    border-bottom: 1px solid var(--rule);
+  }
+  table.legenda td {
+    padding: 11px 0;
+    border-bottom: 1px solid var(--rule-soft);
+    vertical-align: middle;
+    color: var(--ink-soft);
+  }
+  table.legenda tr:last-child td { border-bottom: none; }
+  .amostra {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: var(--sinal-ink);
+    background: var(--fundo-amostra);
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+  }
+  .amostra-incompleto { --fundo-amostra: var(--sinal-incompleto); }
+  .amostra-repetido { --fundo-amostra: var(--sinal-repetido); }
+  .amostra-duplicado { --fundo-amostra: var(--sinal-duplicado); }
+  .amostra-palavra { --fundo-amostra: var(--sinal-palavra); }
+
+  .fluxo {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0;
+    margin-top: 22px;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .fluxo-passo {
+    padding: 18px 18px 20px;
+    background: var(--surface);
+    position: relative;
+  }
+  .fluxo-passo + .fluxo-passo { border-left: 1px solid var(--rule); }
+  .fluxo-passo .n {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+  }
+  .fluxo-passo h4 {
+    font-size: 0.92rem;
+    margin: 6px 0 6px;
+    font-weight: 600;
+  }
+  .fluxo-passo p {
+    margin: 0;
+    font-size: 0.83rem;
+    color: var(--ink-soft);
+  }
+
+  code, .tecla {
+    font-family: var(--font-mono);
+    font-size: 0.86em;
+    background: var(--surface-2);
+    border: 1px solid var(--rule-soft);
+    border-radius: 4px;
+    padding: 1px 6px;
+  }
+
+  footer.rodape {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 24px 64px;
+    color: var(--ink-faint);
+    font-size: 0.82rem;
+  }
+  footer.rodape .linha {
+    border-top: 1px solid var(--rule);
+    padding-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  ::selection { background: var(--accent-soft); color: var(--ink); }
+</style>
+
+<div class="capa">
+  <div class="capa-interior">
+    <span class="eyebrow">Santos Silveiro Advogados</span>
+    <h1>Manual da Triagem de Intimações</h1>
+    <p class="dek">
+      Guia de referência do sistema que organiza as intimações exportadas do
+      Publicações Online — o que cada tela faz, o que é automático e o que
+      exige uma ação de quem está usando.
+    </p>
+    <div class="capa-meta">
+      <span><strong>Sistema</strong> SsaTriagemIntimações</span>
+      <span><strong>Versão deste guia</strong> agosto de 2026</span>
+      <span><strong>Público</strong> equipe da controladoria</span>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+  <nav class="toc" aria-label="Sumário">
+    <div class="toc-titulo">Nesta página</div>
+    <ol>
+      <li><a href="#visao-geral">Visão geral</a></li>
+      <li><a href="#triagem">Enviar uma planilha</a></li>
+      <li><a href="#priorizacao">Como a prioridade é decidida</a></li>
+      <li><a href="#alerta">Alerta de prazo vencendo</a></li>
+      <li><a href="#intimacoes">Tela de Intimações</a></li>
+      <li><a href="#planilha">Planilha organizada</a></li>
+      <li><a href="#conta">Sua conta</a></li>
+      <li><a href="#usuarios">Gestão de usuários</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <section class="bloco" id="visao-geral">
+      <span class="eyebrow">Visão geral</span>
+      <h2>Pra que o sistema serve</h2>
+      <p class="intro">
+        O Publicações Online captura os painéis eletrônicos dos advogados e
+        exporta um relatório bruto, difícil de ler no dia a dia. Este sistema
+        lê esse arquivo e devolve duas coisas: uma <strong>planilha
+        organizada</strong> e uma <strong>tela de trabalho</strong> onde dá
+        pra tratar cada intimação sem precisar abrir Excel nenhum. Os dados
+        originais nunca são alterados.
+      </p>
+      <div class="cartoes">
+        <div class="cartao">
+          <h3>Destaca o que importa</h3>
+          <p>Palavras-chave, processos repetidos, conteúdo duplicado e itens com teor incompleto ficam sinalizados automaticamente.</p>
+        </div>
+        <div class="cartao">
+          <h3>Organiza por urgência</h3>
+          <p>Tudo é ordenado pelo prazo mais próximo de vencer, com as intimações do mesmo processo agrupadas.</p>
+        </div>
+        <div class="cartao">
+          <h3>Não deixa passar prazo</h3>
+          <p>Um aviso aparece assim que alguém entra no sistema, se houver algo vencido ou vencendo em breve.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="bloco" id="triagem">
+      <span class="eyebrow">Tela · Triagem</span>
+      <div class="bloco-cabecalho">
+        <h2>Enviar uma planilha</h2>
+        <span class="badge badge-todos">Todos os usuários</span>
+      </div>
+      <p class="intro">
+        É a primeira tela depois do login. Envie o <code>.xlsx</code> bruto
+        exportado do Publicações Online e clique em <strong>Processar</strong>.
+      </p>
+      <ul class="lista">
+        <li><strong>Palavras-chave:</strong> o sistema procura termos configurados no texto da intimação (coluna Conteúdo) e marca as linhas onde eles aparecem — ignorando maiúsculas/minúsculas e acentos.</li>
+        <li><strong>Processos repetidos:</strong> quando o mesmo número de processo aparece mais de uma vez no lote, todas as ocorrências são marcadas e contadas.</li>
+        <li><strong>Conteúdo duplicado:</strong> se o texto de duas intimações de processos diferentes é idêntico, ambas são sinalizadas.</li>
+        <li><strong>Teor incompleto:</strong> itens que o Publicações Online não conseguiu exportar por completo (listados na aba Resumo do arquivo bruto) são marcados à parte.</li>
+      </ul>
+      <div class="nota">
+        <span>
+          <strong>Reenviar o mesmo arquivo é seguro.</strong> Cada intimação
+          tem um código único; reprocessar não cria duplicata e não desfaz
+          nada que já tenha sido marcado como tratado.
+        </span>
+      </div>
+    </section>
+
+    <section class="bloco" id="priorizacao">
+      <span class="eyebrow">Como funciona</span>
+      <h2>Como a prioridade é decidida</h2>
+      <p class="intro">
+        A ordem final não é a ordem do arquivo bruto — o sistema recalcula
+        tudo em três passos:
+      </p>
+      <div class="fluxo">
+        <div class="fluxo-passo">
+          <span class="n">Critério principal</span>
+          <h4>Prazo mais próximo</h4>
+          <p>A data-limite de cada intimação manda na ordenação. Quem não tem prazo identificado vai pro final da lista.</p>
+        </div>
+        <div class="fluxo-passo">
+          <span class="n">Desempate</span>
+          <h4>Peso da palavra-chave</h4>
+          <p>Entre duas intimações com prazo parecido, a que contém termos de maior peso configurado aparece primeiro.</p>
+        </div>
+        <div class="fluxo-passo">
+          <span class="n">Agrupamento</span>
+          <h4>Mesmo processo, junto</h4>
+          <p>Intimações do mesmo processo ficam lado a lado na lista, na posição da mais urgente entre elas.</p>
+        </div>
+      </div>
+      <p class="intro" style="margin-top:22px;">
+        A data-limite vem da coluna de prazo do próprio arquivo quando ela
+        existe; quando vem vazia, o sistema extrai a data direto do texto da
+        intimação como alternativa.
+      </p>
+    </section>
+
+    <section class="bloco" id="alerta">
+      <span class="eyebrow">Aviso automático</span>
+      <div class="bloco-cabecalho">
+        <h2>Alerta de prazo vencendo</h2>
+        <span class="badge badge-todos">Todos os usuários</span>
+      </div>
+      <p class="intro">
+        Um aviso amarelo aparece no topo da tela de Triagem e da tela de
+        Intimações sempre que existem intimações pendentes com prazo já
+        vencido ou vencendo nos próximos dias — pra não depender de alguém
+        lembrar de checar manualmente.
+      </p>
+    </section>
+
+    <section class="bloco" id="intimacoes">
+      <span class="eyebrow">Tela · Intimações</span>
+      <div class="bloco-cabecalho">
+        <h2>Tratar direto na tela</h2>
+        <span class="badge badge-todos">Todos os usuários</span>
+      </div>
+      <p class="intro">
+        Acessível pelo link <strong>Intimações</strong> no topo da página, ou
+        pelo botão que aparece depois de processar um arquivo. Mostra todas as
+        intimações já processadas — de qualquer upload — sem precisar abrir
+        Excel.
+      </p>
+      <ul class="lista">
+        <li><strong>Pendentes e Tratadas:</strong> duas abas. Ao marcar uma intimação como tratada, ela sai de Pendentes e passa pra Tratadas, com o nome de quem tratou e o horário.</li>
+        <li><strong>Desmarcar:</strong> se alguém marcar por engano, um botão devolve a intimação pra fila de pendentes.</li>
+        <li><strong>Busca:</strong> filtra por número de processo, termo de pesquisa ou trecho do conteúdo.</li>
+        <li><strong>Mesmas cores da planilha:</strong> as linhas seguem a mesma sinalização visual do Excel exportado (ver seção seguinte).</li>
+      </ul>
+    </section>
+
+    <section class="bloco" id="planilha">
+      <span class="eyebrow">Saída</span>
+      <div class="bloco-cabecalho">
+        <h2>Planilha organizada</h2>
+        <span class="badge badge-todos">Todos os usuários</span>
+      </div>
+      <p class="intro">
+        Além da tela, dá pra baixar um <code>.xlsx</code> pronto pra
+        compartilhar — cabeçalho fixo, filtro automático e as linhas
+        coloridas conforme o que foi encontrado nelas. O arquivo original
+        enviado nunca é alterado.
+      </p>
+      <table class="legenda">
+        <thead>
+          <tr><th>Cor da linha</th><th>Significa</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="amostra amostra-incompleto">Teor incompleto</span></td>
+            <td>O Publicações Online não exportou o conteúdo completo dessa intimação.</td>
+          </tr>
+          <tr>
+            <td><span class="amostra amostra-repetido">Processo repetido</span></td>
+            <td>O mesmo número de processo aparece mais de uma vez no lote.</td>
+          </tr>
+          <tr>
+            <td><span class="amostra amostra-duplicado">Conteúdo duplicado</span></td>
+            <td>O texto da intimação é idêntico ao de outra, de processo diferente.</td>
+          </tr>
+          <tr>
+            <td><span class="amostra amostra-palavra">Palavra-chave encontrada</span></td>
+            <td>O texto contém algum termo configurado como relevante.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="nota">
+        <span>
+          Uma linha pode se encaixar em mais de um caso — quando isso
+          acontece, a cor exibida segue essa mesma ordem de prioridade, e a
+          coluna <strong>Sinalizadores</strong> lista todos os motivos, não
+          só o que definiu a cor.
+        </span>
+      </div>
+    </section>
+
+    <section class="bloco" id="conta">
+      <span class="eyebrow">Perfil</span>
+      <div class="bloco-cabecalho">
+        <h2>Sua conta</h2>
+        <span class="badge badge-todos">Todos os usuários</span>
+      </div>
+      <p class="intro">
+        O círculo com sua inicial, no canto superior direito, abre um menu
+        com duas opções:
+      </p>
+      <ul class="lista">
+        <li><strong>Redefinir senha:</strong> troca a sua própria senha a qualquer momento — pede a senha atual antes de aceitar a nova, por segurança.</li>
+        <li><strong>Sair:</strong> encerra a sessão.</li>
+      </ul>
+    </section>
+
+    <section class="bloco" id="usuarios">
+      <span class="eyebrow">Administração</span>
+      <div class="bloco-cabecalho">
+        <h2>Gestão de usuários</h2>
+        <span class="badge badge-admin">Somente admin</span>
+      </div>
+      <p class="intro">
+        Não existe cadastro público — uma conta só existe se um
+        administrador criar. Quem administra acessa pelo link
+        <strong>Gerenciar usuários</strong>, visível apenas pra esse perfil.
+      </p>
+      <ul class="lista">
+        <li><strong>Criar usuário:</strong> define um nome de usuário e senha, com a opção de já marcar a conta como administradora.</li>
+        <li><strong>Remover usuário:</strong> disponível pra qualquer conta, exceto a que está logada no momento — evita se auto-remover por engano.</li>
+        <li><strong>Redefinir a senha de alguém:</strong> não exige saber a senha atual da pessoa. Pode gerar uma senha temporária aleatória (mostrada uma única vez, pra repassar com segurança) ou definir uma senha específica.</li>
+      </ul>
+      <div class="nota">
+        <span>
+          Uma pessoa que não é administradora não vê o link de gestão e
+          recebe acesso negado se tentar entrar direto pelo endereço da
+          página.
+        </span>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer class="rodape">
+  <div class="linha">
+    <span>SsaTriagemIntimações — uso interno</span>
+    <span>Dúvidas ou sugestões: fale com a administração do sistema.</span>
+  </div>
+</footer>

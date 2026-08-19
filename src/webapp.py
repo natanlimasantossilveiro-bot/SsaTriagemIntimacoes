@@ -121,6 +121,7 @@ def index(request: Request):
             "eh_admin": usuarios_db.eh_admin(usuario),
             "resultado": None,
             "resumo_intimacoes": None,
+            "urgentes": intimacoes_db.contar_urgentes(),
             "erro": None,
         },
     )
@@ -143,6 +144,7 @@ async def processar(request: Request, arquivo: UploadFile = File(...)):
                 "eh_admin": eh_admin,
                 "resultado": None,
                 "resumo_intimacoes": None,
+                "urgentes": intimacoes_db.contar_urgentes(),
                 "erro": "Envie um arquivo .xlsx.",
             },
             status_code=400,
@@ -167,6 +169,7 @@ async def processar(request: Request, arquivo: UploadFile = File(...)):
                 "eh_admin": eh_admin,
                 "resultado": None,
                 "resumo_intimacoes": None,
+                "urgentes": intimacoes_db.contar_urgentes(),
                 "erro": f"Não foi possível processar o arquivo: {erro}",
             },
             status_code=400,
@@ -182,6 +185,7 @@ async def processar(request: Request, arquivo: UploadFile = File(...)):
             "eh_admin": eh_admin,
             "resultado": resultado,
             "resumo_intimacoes": resumo_intimacoes,
+            "urgentes": intimacoes_db.contar_urgentes(),
             "erro": None,
         },
     )
@@ -339,6 +343,7 @@ def intimacoes(request: Request, aba: str = "pendentes", busca: str = ""):
             "busca": busca,
             "total_pendentes": intimacoes_db.contar_pendentes(),
             "total_tratadas": intimacoes_db.contar_tratadas(),
+            "urgentes": intimacoes_db.contar_urgentes(),
         },
     )
 

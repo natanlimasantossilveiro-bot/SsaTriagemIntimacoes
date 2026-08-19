@@ -16,6 +16,10 @@ PASTA_OUTPUT = Path("output")
 CAMINHO_BANCO_USUARIOS = Path(__file__).resolve().parent / "usuarios.db"
 CAMINHO_BANCO_INTIMACOES = Path(__file__).resolve().parent / "intimacoes.db"
 
+# Intimações pendentes com prazo vencendo em até essa quantidade de dias (ou
+# já vencido) disparam o alerta de prazo na tela — ver intimacoes_db.contar_urgentes.
+DIAS_ALERTA_PRAZO = 3
+
 # TODO: lista definitiva sai da reunião com a solicitante.
 # Busca é feita (case-insensitive) no texto da coluna "Conteúdo".
 # Cada termo tem um peso (quanto maior, mais prioridade dá pra intimação que

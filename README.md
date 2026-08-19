@@ -147,6 +147,10 @@ cores/sinalizadores da planilha.
   Publicações Online), então reprocessar só atualiza os dados sem mexer no
   que já foi marcado como tratado.
 - Qualquer usuário logado (admin ou comum) pode usar essa tela.
+- Um aviso amarelo aparece no topo da Triagem e da tela de Intimações
+  sempre que houver pendentes com prazo vencido ou vencendo nos próximos
+  dias (`config.DIAS_ALERTA_PRAZO`, padrão 3) — pra não depender de alguém
+  lembrar de checar.
 
 Defina a variável de ambiente `SSA_SECRET_KEY` antes de rodar em qualquer
 ambiente exposto (a chave assina o cookie de sessão). Sem ela, o webapp usa

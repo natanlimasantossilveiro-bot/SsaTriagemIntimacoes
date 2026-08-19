@@ -4,6 +4,12 @@
 {% block main_classe %}pagina-larga{% endblock %}
 
 {% block conteudo %}
+  {% if urgentes %}
+    <div class="aviso-alerta">
+      <span>⚠️ {{ urgentes }} intimaç{{ 'ão' if urgentes == 1 else 'ões' }} pendente{{ '' if urgentes == 1 else 's' }} com prazo vencido ou vencendo nos próximos dias.</span>
+    </div>
+  {% endif %}
+
   <h2>Intimações</h2>
   <p style="color: var(--cor-texto-suave); font-size: 0.9rem;">
     Fila de triagem — todas as intimações já processadas, ordenadas pelo prazo
